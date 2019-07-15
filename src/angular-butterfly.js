@@ -3,17 +3,33 @@
 angular.module('butterfly', [])
   .service('VersionService', ['$rootScope', '$q', '$resource', function($rootScope, $q, $resource) {
 
-    this.notifyIfNotUpdated = function(url, version) {
-      var Version = $resource(url, null);
+    var version = null;
+    var deferrer = $q.defer();
+    var loading = false;
 
-      Version.get(
-        {},
-        function(response) {
-          $rootScope.isAppUpdated = response.version === version;
-        },
-        function(error) {
+    this.get = function(url) {
+      if (version != null) {
+        deferrer.resolve(version);
+      }
+      else {
+        if (!loading) {
+          loading = true;
+          var Version = $resource(url, null);
+          Version.get(
+            function(response) {
+              loading = false;
+              version = response.version;
+              deferrer.resolve(response.version);
+            },
+            function(error) {
+              loading = false;
+              console.log(error);
+              deferrer.reject(error);
+            }
+          );
         }
-      );
+      }
+      return deferrer.promise;
     };
   }])
 
@@ -26,7 +42,9 @@ angular.module('butterfly', [])
       },
       link: function(scope, elm, attrs, ctrl) {
         if ($rootScope.isAppUpdated) {
-          VersionService.notifyIfNotUpdated(scope.url, scope.version);
+          VersionService.get(scope.url).then(function(version){
+            $rootScope.isAppUpdated = $rootScope.isAppUpdated && scope.version === version;
+          });
         }
       }
     }
