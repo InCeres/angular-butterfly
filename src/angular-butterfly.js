@@ -1,36 +1,19 @@
 'use strict';
 
 angular.module('butterfly', [])
-  .service('VersionService', ['$q', '$resource', function($q, $resource) {
-    var isUpdated = null;
+  .factory('VersionService', ['$rootScope', '$q', '$resource', function($rootScope, $q, $resource) {
 
-    var deferrer = $q.defer();
-    var loading = false;
+    this.notifyIfNotUpdated = function(url, version) {
+      var Version = $resource(url, null);
 
-    this.checkIfIsUpdated = function(url, version) {
-      if (isUpdated != null) {
-        deferrer.resolve(isUpdated);
-      }
-      else {
-        if (!loading) {
-          loading = true;
-          var Version = $resource(url, null);
-
-          Version.get(
-            function(response) {
-              isUpdated = response.version === version;
-              loading = false;
-              deferrer.resolve(isUpdated);
-            },
-            function(error) {
-              loading = false;
-              console.log(error);
-              deferrer.reject(error);
-            }
-          );
+      Version.get(
+        {},
+        function(response) {
+          $rootScope.isAppUpdated = response.version === version;
+        },
+        function(error) {
         }
-      }
-      return deferrer.promise;
+      );
     };
   }])
 
@@ -42,7 +25,9 @@ angular.module('butterfly', [])
         version: '@version'
       },
       link: function(scope, elm, attrs, ctrl) {
-        $rootScope.isAppUpdated = $rootScope.isAppUpdated && VersionService.checkIfIsUpdated(scope.url, scope.version);
+        if ($rootScope.isAppUpdated) {
+          VersionService.notifyIfNotUpdated(scope.url, scope.version);
+        }
       }
     }
 
