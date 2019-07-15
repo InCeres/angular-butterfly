@@ -32,8 +32,7 @@ angular.module('butterfly', [])
       return deferrer.promise;
     };
   }])
-
-  .directive('butterflyDirective', ['$rootScope', 'VersionService', function($rootScope, VersionService) {
+  .directive('versionVerifier', ['$rootScope', 'VersionService', function($rootScope, VersionService) {
     return {
       restrict: 'E',
       scope: {
