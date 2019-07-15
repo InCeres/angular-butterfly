@@ -1,7 +1,7 @@
 'use strict';
 
 angular.module('butterfly', [])
-  .factory('VersionService', ['$rootScope', '$q', '$resource', function($rootScope, $q, $resource) {
+  .service('VersionService', ['$rootScope', '$q', '$resource', function($rootScope, $q, $resource) {
 
     this.notifyIfNotUpdated = function(url, version) {
       var Version = $resource(url, null);
