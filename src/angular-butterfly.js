@@ -37,12 +37,16 @@ angular.module('butterfly', [])
       restrict: 'E',
       scope: {
         url: '@url',
-        version: '@version'
+        version: '@version',
+        notifyOutside: '='
       },
       link: function(scope, elm, attrs, ctrl) {
         if ($rootScope.isAppUpdated) {
           VersionService.get(scope.url).then(function(version){
             $rootScope.isAppUpdated = $rootScope.isAppUpdated && scope.version === version;
+            if (scope.notifyOutside && !$rootScope.isAppUpdated) {
+              window.parent.postMessage("outdated-version", "*");
+            }
           });
         }
       }
