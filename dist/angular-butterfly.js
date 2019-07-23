@@ -18,6 +18,10 @@ angular.module('butterfly', [])
           Version.get(
             function(response) {
               loading = false;
+              if (response.version === undefined) {
+                deferrer.reject(response);
+                return;
+              }
               version = response.version;
               deferrer.resolve(response.version);
             },
@@ -42,12 +46,17 @@ angular.module('butterfly', [])
       },
       link: function(scope, elm, attrs, ctrl) {
         if ($rootScope.isAppUpdated) {
-          VersionService.get(scope.url).then(function(version){
-            $rootScope.isAppUpdated = $rootScope.isAppUpdated && scope.version === version;
-            if (scope.notifyOutside && !$rootScope.isAppUpdated) {
-              window.parent.postMessage("outdated-version", "*");
+          VersionService.get(scope.url).then(
+            function(version){
+              $rootScope.isAppUpdated = $rootScope.isAppUpdated && scope.version === version;
+              if (scope.notifyOutside && !$rootScope.isAppUpdated) {
+                window.parent.postMessage("outdated-version", "*");
+              }
+            },
+            function(error) {
+              console.log('error', error);
             }
-          });
+          );
         }
       }
     }
